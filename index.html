@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Pair Analysis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --highlight: #ef4444;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h1 {
+            margin: 0 0 10px 0;
+            color: var(--text-main);
+            font-size: 2.25rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+        .header p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 1.125rem;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+        select, input[type="file"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            background-color: #f9fafb;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        select:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+            background-color: #fff;
+        }
+        .button-group {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            flex: 1;
+        }
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        button.secondary {
+            background-color: white;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        button.secondary:hover {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 8px;
+        }
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            background-color: #f9fafb;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        th:first-child {
+            border-top-left-radius: 8px;
+        }
+        th:last-child {
+            border-top-right-radius: 8px;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover td {
+            background-color: #f9fafb;
+        }
+        .highlight {
+            color: var(--highlight);
+            font-weight: 600;
+        }
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 0;
+            font-size: 1rem;
+        }
+        @media (max-width: 640px) {
+            .container {
+                padding: 24px 16px;
+            }
+            .card {
+                padding: 24px;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>วิเคราะห์ความถี่การซื้อสินค้าคู่กัน</h1>
+            <p>นับทุกแถวจากไฟล์ CSV</p>
+        </div>
+
+        <div class="card">
+            <div class="form-group">
+                <label for="targetProduct">1. เลือกสินค้าหลัก:</label>
+                <select id="targetProduct">
+                    <option value="อาหารแปรรูป">อาหารแปรรูป</option>
+                    <option value="ขนมแพ็ค">ขนมแพ็ค</option>
+                    <option value="น้ำเปล่า">น้ำเปล่า</option>
+                    <option value="ปากกา">ปากกา</option>
+                    <option value="กระดาษชำระ">กระดาษชำระ</option>
+                    <option value="ยา">ยา</option>
+                    <option value="ขนมขบเคี้ยว">ขนมขบเคี้ยว</option>
+                    <option value="น้ำอัดลม">น้ำอัดลม</option>
+                    <option value="ไม้บรรทัด">ไม้บรรทัด</option>
+                    <option value="ผ้าอนามัย">ผ้าอนามัย</option>
+                    <option value="ขนมปัง">ขนมปัง</option>
+                    <option value="น้ำหวาน">น้ำหวาน</option>
+                    <option value="ดินสอ">ดินสอ</option>
+                    <option value="หน้ากากอนามัย">หน้ากากอนามัย</option>
+                    <option value="ไอศกรีม">ไอศกรีม</option>
+                    <option value="นม">นม</option>
+                    <option value="ยางลบ">ยางลบ</option>
+                    <option value="ลูกอม">ลูกอม</option>
+                    <option value="กระดาษ">กระดาษ</option>
+                    <option value="ช็อคโกแลต">ช็อคโกแลต</option>
+                    <option value="เครื่องดื่มชูกำลัง">เครื่องดื่มชูกำลัง</option>
+                    <option value="สมุดบันทึก">สมุดบันทึก</option>
+                    <option value="กาแฟ">กาแฟ</option>
+                    <option value="เครื่องแต่งกาย">เครื่องแต่งกาย</option>
+                    <option value="น้ำผลไม้">น้ำผลไม้</option>
+                    <option value="ที่ลบคำผิด">ที่ลบคำผิด</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="csvInput">2. อัปโหลดไฟล์ CSV (เช่น ชีต1.csv):</label>
+                <input type="file" id="csvInput" accept=".csv">
+            </div>
+
+            <div class="button-group">
+                <button onclick="runAnalysis()">เริ่มวิเคราะห์และนับจำนวน</button>
+                <button class="secondary" onclick="exportData()">ดาวน์โหลดไฟล์ CSV ผลลัพธ์</button>
+            </div>
+        </div>
+
+        <div class="card table-container">
+            <div id="tableOutput">
+                <div class="empty-state">กรุณาอัปโหลดไฟล์และกดเริ่มวิเคราะห์</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let finalData = [];
+
+        function runAnalysis() {
+            const file = document.getElementById('csvInput').files[0];
+            const target = document.getElementById('targetProduct').value;
+
+            if (!file) {
+                alert("กรุณาเลือกไฟล์ก่อนครับ");
+                return;
+            }
+
+            Papa.parse(file, {
+                header: false,
+                skipEmptyLines: true,
+                complete: function (results) {
+                    const data = results.data.slice(1);
+                    processData(data, target);
+                }
+            });
+        }
+
+        function processData(rawData, target) {
+            const counts = {};
+            const allItems = Array.from(document.querySelectorAll('#targetProduct option')).map(o => o.value);
+
+            allItems.forEach(item => {
+                if (item !== target) counts[item] = 0;
+            });
+
+            rawData.forEach(rowArray => {
+                let itemsInBill = rowArray.slice(1)
+                    .filter(v => v !== null && v !== undefined && v.trim() !== "")
+                    .map(v => v.trim());
+
+                itemsInBill = Array.from(new Set(itemsInBill));
+
+                if (itemsInBill.includes(target)) {
+                    itemsInBill.forEach(item => {
+                        if (item !== target && counts.hasOwnProperty(item)) {
+                            counts[item]++;
+                        }
+                    });
+                }
+            });
+
+            let idCounter = 1;
+            finalData = Object.entries(counts).map(([name, count]) => {
+                const pairName = `${target} + ${name}`;
+                return {
+                    "รหัส": idCounter++,
+                    "C2": pairName,
+                    "L2": (count >= 12) ? pairName : "",
+                    "Support Count": count
+                };
+            });
+
+            renderTable();
+        }
+
+        function renderTable() {
+            if (finalData.length === 0) {
+                document.getElementById('tableOutput').innerHTML = '<div class="empty-state">ไม่มีข้อมูลให้แสดง</div>';
+                return;
+            }
+
+            let html = `<table>
+                        <thead>
+                            <tr>
+                                <th>รหัส</th>
+                                <th>C2</th>
+                                <th>L2</th>
+                                <th>Support Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            finalData.forEach(row => {
+                let countDisplay = row["Support Count"];
+                let countClass = "";
+                if (countDisplay >= 12) {
+                    countClass = "highlight";
+                }
+
+                html += `<tr>
+                <td>${row["รหัส"]}</td>
+                <td>${row["C2"]}</td>
+                <td><strong>${row["L2"]}</strong></td>
+                <td class="${countClass}">${countDisplay}</td>
+            </tr>`;
+            });
+            html += `</tbody></table>`;
+            document.getElementById('tableOutput').innerHTML = html;
+        }
+
+        function exportData() {
+            if (finalData.length === 0) {
+                alert("ไม่มีข้อมูลให้ดาวน์โหลด");
+                return;
+            }
+            const csv = Papa.unparse(finalData);
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `ผลวิเคราะห์_${document.getElementById('targetProduct').value}.csv`;
+            link.click();
+        }
+    </script>
+
+</body>
+
+</html>
