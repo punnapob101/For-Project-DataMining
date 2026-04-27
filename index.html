@@ -289,8 +289,8 @@
                 const pairName = `${target} + ${name}`;
                 return {
                     "รหัส": idCounter++,
-                    "C2": pairName,
-                    "L2": (count >= 12) ? pairName : "",
+                    "C1": pairName,
+                    "L1": (count >= 15) ? pairName : "",
                     "Support Count": count
                 };
             });
@@ -308,8 +308,8 @@
                         <thead>
                             <tr>
                                 <th>รหัส</th>
-                                <th>C2</th>
-                                <th>L2</th>
+                                <th>C1</th>
+                                <th>L1</th>
                                 <th>Support Count</th>
                             </tr>
                         </thead>
@@ -318,14 +318,14 @@
             finalData.forEach(row => {
                 let countDisplay = row["Support Count"];
                 let countClass = "";
-                if (countDisplay >= 12) {
+                if (countDisplay >= 15) {
                     countClass = "highlight";
                 }
 
                 html += `<tr>
                 <td>${row["รหัส"]}</td>
-                <td>${row["C2"]}</td>
-                <td><strong>${row["L2"]}</strong></td>
+                <td>${row["C1"]}</td>
+                <td><strong>${row["L1"]}</strong></td>
                 <td class="${countClass}">${countDisplay}</td>
             </tr>`;
             });
